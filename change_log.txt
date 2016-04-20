@@ -1,4 +1,19 @@
 -------------------------------------------------------------------------------------------------------------------
+Version 3.0
+    - Added support for Gravity Forms 2.0
+    - Added GF_Field_Signature.
+    - Updated SuperSignature to version 1.5.0.8.
+    - Fixed an issue where the old signature file was not deleted when using the 'sign again' link.
+    - Fixed an issue where the signature files would remain when permanently deleting all the entries for a form.
+    - Fixed an issue which prevented the signature canvas being displayed after deleting the existing signature when editing an entry.
+    - Fixed some strings in the form editor which were untranslatable.
+    - Fixed an issue with the borderStyle setting.
+    - Updated to only include the deleteSignature script on the entry detail edit page.
+    - Updated location of Signature field settings so they are now located on the Appearance tab.
+    - Updated SuperSignature; fixing a vertical offset issue with the touch point/capture location when the WP admin bar is present on a mobile device.
+    - Removed Browser.php.
+
+-------------------------------------------------------------------------------------------------------------------
 Version 2.4
     - Added drag and drop support to the field button in the form editor (GF 1.9).
 	- Added Spanish (es_ES) translation.
