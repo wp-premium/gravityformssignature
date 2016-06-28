@@ -1,4 +1,16 @@
 -------------------------------------------------------------------------------------------------------------------
+Version 3.1
+    - Added the gform_signature_init_options filter. See https://www.gravityhelp.com/documentation/article/gform_signature_init_options/
+    - Updated to include the ss_orig.js script in the footer.
+    - Updated the signature container markup to use the height from the init options.
+    - Updated script to be initialized via get_form_inline_script_on_page_render() rather than inline with the input markup.
+	- Fixed an issue when signing on a Windows touch machine with chrome.
+    - Fixed an issue with the required field validation when updating an existing entry outside the entry detail context e.g. from a Gravity Flow user input step.
+    - Fixed a JavaScript error which could occur when the signature init script is included on a page and the field input is not e.g. the Gravity Flow user input step when the field is not editable.
+    - Fixed an issue with the border width style in the admin and on the front-end for old IE.
+    - Fixed a JavaScript issue which affected multi-page AJAX enabled forms when loading the next page.
+
+-------------------------------------------------------------------------------------------------------------------
 Version 3.0
     - Added support for Gravity Forms 2.0
     - Added GF_Field_Signature.
@@ -84,7 +96,7 @@ Version 1.0
 
 -------------------------------------------------------------------------------------------------------------------
 Version 1.0.beta2
-    - Fixed issue with jQuery being included in the ss.js file
+    - Fixed issue with jQuery being included in the ss_orig.js file
     - Added support for ManageWP
 
 -------------------------------------------------------------------------------------------------------------------

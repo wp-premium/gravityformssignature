@@ -140,13 +140,14 @@ class GF_Field_Signature extends GF_Field {
 		$id       = $this->id;
 		$field_id = $form_id == 0 ? "input_$id" : 'input_' . $form_id . "_$id";
 
-		$bgcolor     = empty( $this->backgroundColor ) ? '#FFFFFF' : $this->backgroundColor;
-		$bordercolor = empty( $this->borderColor ) ? '#DDDDDD' : $this->borderColor;
-		$pencolor    = empty( $this->penColor ) ? '#000000' : $this->penColor;
-		$boxwidth    = rgblank( $this->boxWidth ) ? '300' : $this->boxWidth;
-		$borderstyle = empty( $this->borderStyle ) ? 'Dashed' : $this->borderStyle;
-		$borderwidth = rgblank( $this->borderWidth ) ? '2' : $this->borderWidth;
-		$pensize     = rgblank( $this->penSize ) ? '2' : $this->penSize;
+		$init_options = $this->get_supersignature_init_options( $field_id, $form );
+
+		$bgcolor     = rgar( $init_options, 'BackColor', '#FFFFFF' );
+		$bordercolor = rgar( $init_options, 'BorderColor', '#DDDDDD' );
+		$boxheight   = rgar( $init_options, 'SignHeight', '180' );
+		$boxwidth    = rgar( $init_options, 'SignWidth', '300' );
+		$borderstyle = rgar( $init_options, 'BorderStyle', 'Dashed' );
+		$borderwidth = rgar( $init_options, 'BorderWidth', '2px' );
 
 		if ( $is_form_editor ) {
 			//box width is hardcoded in the admin
@@ -154,7 +155,7 @@ class GF_Field_Signature extends GF_Field {
 			         '.top_label .gf_signature_container {width: 460px;} ' .
 			         '.left_label .gf_signature_container, .right_label .gf_signature_container {width: 300px;} ' .
 			         '</style>' .
-			         "<div style='display:-moz-inline-stack; display: inline-block; zoom: 1; *display: inline;'><div class='gf_signature_container' style='height:180px; border: {$borderwidth}px {$borderstyle} {$bordercolor}; background-color:{$bgcolor};'></div></div>";
+			         "<div style='display:-moz-inline-stack; display: inline-block; zoom: 1; *display: inline;'><div class='gf_signature_container' style='height:180px; border: {$borderwidth} {$borderstyle} {$bordercolor}; background-color:{$bgcolor};'></div></div>";
 
 		} else {
 
@@ -192,36 +193,57 @@ class GF_Field_Signature extends GF_Field {
 
 			$container_style = rgar( $form, 'labelPlacement' ) == 'top_label' ? '' : "style='display:-moz-inline-stack; display: inline-block; zoom: 1; *display: inline;'";
 
-			$input .= "<div {$container_style}><div id='{$field_id}_Container' style='height:180px; width: {$boxwidth}px; {$display}' >" .
-			          "<input type='hidden' class='gform_hidden' name='{$field_id}_valid' id='{$field_id}_valid' />" .
+			$input .= "<div {$container_style}><div id='{$field_id}_Container' style='height:{$boxheight}px; width:{$boxwidth}px; {$display}' >" .
+			          "<input type='hidden' class='gform_hidden' name='{$field_id}_valid' id='{$field_id}_valid' />";
 
-			          "<script type='text/javascript'>" .
-			          'var ieVer = getInternetExplorerVersion();' .
-			          'if (isIE) {if (ieVer >= 9.0) {isIE = false;}}' .
-			          'if (isIE) {' .
-			          "document.write(\"<div id='{$field_id}' style='width:{$boxwidth}px; height:180px; border:{$borderstyle} {$borderwidth}px {$bordercolor}; background-color:{$bgcolor};'></div>\");" .
-			          '} else {' .
-			          "document.write(\"<canvas id='{$field_id}' width='{$boxwidth}' height='180'></canvas>\");" .
-			          '}</script>' .
+			$use_canvas = true;
 
-			          '</div></div>' .
+			global $is_IE;
+			if ( $is_IE ) {
+				$ua = $_SERVER['HTTP_USER_AGENT'];
 
-			          "<script type='text/javascript'>" .
-			          "if (typeof SuperSignature != 'undefined') {" .
+				if ( ! empty( $ua ) && preg_match( '/\bMSIE (\d)/', $ua, $matches ) && (int) $matches[1] <= 8 ) {
+					$input .= "<div id='{$field_id}' style='width:{$boxwidth}px; height:{$boxheight}px; border:{$borderstyle} {$borderwidth} {$bordercolor}; background-color:{$bgcolor};'></div>";
+					$use_canvas = false;
+				}
+			}
 
-			          "var obj{$field_id} = new SuperSignature({IeModalFix: true, SignObject:'{$field_id}',BackColor: '{$bgcolor}', PenSize: '{$pensize}', PenColor: '{$pencolor}',SignWidth: '{$boxwidth}',SignHeight: '180' ,BorderStyle:'{$borderstyle}',BorderWidth: '{$borderwidth}px',BorderColor: '{$bordercolor}', RequiredPoints: '15',ClearImage:'" . gf_signature()->get_base_url() . "/includes/super_signature/refresh.png', PenCursor:'" . gf_signature()->get_base_url() . "/includes/super_signature/pen.cur', Visible: 'true', ErrorMessage: '', StartMessage: '', SuccessMessage: ''});" .
-			          "obj{$field_id}.Init();" .
+			if ( $use_canvas ) {
+				$input .= "<canvas id='{$field_id}' width='{$boxwidth}' height='{$boxheight}'></canvas>";
+			}
 
-			          "jQuery('#gform_{$form_id}').submit(function(){" .
-			          "jQuery('#{$field_id}_valid').val(obj{$field_id}.IsValid() || jQuery('#{$field_id}_signature_filename').val() ? '1' : '');" .
-			          "});" .
+			$input .= '</div></div>';
 
-			          "}" .
-			          "</script>";
+			if ( $this->is_entry_detail_edit() ) {
+				$input .= "<script type='text/javascript'>jQuery(document).ready(function() {" . $this->get_form_inline_script_on_page_render( $form ) . '});</script>';
+			}
 
 		}
 
 		return $input;
+	}
+
+	/**
+	 * Return the SuperSignature initialization scripts.
+	 *
+	 * @param array $form The Form Object currently being processed.
+	 *
+	 * @return string
+	 */
+	public function get_form_inline_script_on_page_render( $form ) {
+
+		$unique_id    = $form['id'] == 0 ? "input_{$this->id}" : 'input_' . $form['id'] . "_{$this->id}";
+		$init_options = $this->get_supersignature_init_options( $unique_id, $form );
+
+		$script = "window.obj{$unique_id} = new SuperSignature( " . json_encode( $init_options ) . " );" .
+		           "obj{$unique_id}.Init();" .
+		           "jQuery('#gform_{$form['id']}').submit(function(){" .
+		           "    jQuery('#{$unique_id}_valid').val(obj{$unique_id}.IsValid() || jQuery('#{$unique_id}_signature_filename').val() ? '1' : '');" .
+		           "});";
+
+		$script = "if( typeof SuperSignature != 'undefined' && jQuery('#{$unique_id}').length ) { $script }";
+
+		return $script;
 	}
 
 
@@ -235,7 +257,8 @@ class GF_Field_Signature extends GF_Field {
 	 * @return bool
 	 */
 	public function is_value_submission_empty( $form_id ) {
-		$is_invalid = rgempty( "input_{$form_id}_{$this->id}_valid" );
+		$input_prefix = "input_{$form_id}_{$this->id}";
+		$is_invalid   = rgempty( "{$input_prefix}_signature_filename" ) && rgempty( "{$input_prefix}_valid" );
 
 		if ( $is_invalid && empty( $this->errorMessage ) ) {
 			$this->errorMessage = __( 'Please enter your signature.', 'gravityformssignature' );
@@ -400,6 +423,48 @@ class GF_Field_Signature extends GF_Field {
 		}
 
 		return $filename;
+	}
+
+	/**
+	 * Retrieve the options to be used when initializing SuperSignature for this field.
+	 *
+	 * @param string $field_id The field canvas/div id attribute.
+	 * @param array $form The current form object.
+	 *
+	 * @return array
+	 */
+	public function get_supersignature_init_options( $field_id, $form ) {
+		$init_options = array(
+			'forceMouseEvent'=> true,
+			'IeModalFix'     => true,
+			'SignObject'     => $field_id,
+			'BackColor'      => empty( $this->backgroundColor ) ? '#FFFFFF' : $this->backgroundColor,
+			'PenSize'        => rgblank( $this->penSize ) ? '2' : $this->penSize,
+			'PenColor'       => empty( $this->penColor ) ? '#000000' : $this->penColor,
+			'SignWidth'      => rgblank( $this->boxWidth ) ? '300' : $this->boxWidth,
+			'SignHeight'     => '180',
+			'BorderStyle'    => empty( $this->borderStyle ) ? 'Dashed' : $this->borderStyle,
+			'BorderWidth'    => rgblank( $this->borderWidth ) ? '2px' : $this->borderWidth . 'px',
+			'BorderColor'    => empty( $this->borderColor ) ? '#DDDDDD' : $this->borderColor,
+			'RequiredPoints' => '15',
+			'ClearImage'     => gf_signature()->get_base_url() . '/includes/super_signature/refresh.png',
+			'PenCursor'      => gf_signature()->get_base_url() . '/includes/super_signature/pen.cur',
+			'Visible'        => true,
+			'ErrorMessage'   => '',
+			'StartMessage'   => '',
+			'SuccessMessage' => '',
+		);
+
+		/**
+		 * Allow the SuperSignature initialization options to be customized.
+		 *
+		 * @param array $init_options The initialization options.
+		 * @param GF_Field_Signature $field The current field object.
+		 * @param array $form The current form object.
+		 *
+		 * @since 3.0.2
+		 */
+		return apply_filters( 'gform_signature_init_options', $init_options, $this, $form );
 	}
 
 }

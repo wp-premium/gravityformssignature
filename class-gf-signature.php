@@ -108,11 +108,12 @@ class GFSignature extends GFAddOn {
 				)
 			),
 			array(
-				'handle'  => 'super_signature_script',
-				'src'     => $this->get_base_url() . '/includes/super_signature/ss.js',
-				'version' => $this->_version,
-				'deps'    => array( 'jquery' ),
-				'enqueue' => array(
+				'handle'    => 'super_signature_script',
+				'src'       => $this->get_base_url() . '/includes/super_signature/ss.js',
+				'version'   => $this->_version,
+				'deps'      => array( 'jquery' ),
+				'in_footer' => true,
+				'enqueue'   => array(
 					array( 'field_types' => array( 'signature' ) ),
 				),
 			),
