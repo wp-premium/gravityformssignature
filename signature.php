@@ -3,7 +3,7 @@
 Plugin Name: Gravity Forms Signature Add-On
 Plugin URI: http://www.gravityforms.com
 Description: Creates a Gravity Forms signature field that allows users to sign online using a mouse or stylus.
-Version: 3.0
+Version: 3.1
 Author: Rocketgenius
 Author URI: http://www.rocketgenius.com
 Text Domain: gravityformssignature
@@ -27,7 +27,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-define( 'GF_SIGNATURE_VERSION', '3.0' );
+define( 'GF_SIGNATURE_VERSION', '3.1' );
 
 add_action( 'gform_loaded', array( 'GF_Signature_Bootstrap', 'load' ), 5 );
 
