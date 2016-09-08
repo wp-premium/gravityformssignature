@@ -158,21 +158,21 @@ class GFSignature extends GFAddOn {
 		if ( $position == 0 ) {
 			?>
 			<li class="background_color_setting field_setting gform_setting_left_half">
-				<label for="field_signature_background_color">
+				<label for="field_signature_background_color" class="section_label">
 					<?php esc_html_e( 'Background Color', 'gravityformssignature' ); ?>
 					<?php gform_tooltip( 'signature_background_color' ) ?>
 				</label>
 				<?php GFFormDetail::color_picker( 'field_signature_background_color', 'SetSignatureBackColor' ) ?>
 			</li>
 			<li class="border_color_setting field_setting gform_setting_right_half">
-				<label for="field_signature_border_color">
+				<label for="field_signature_border_color" class="section_label">
 					<?php esc_html_e( 'Border Color', 'gravityformssignature' ); ?>
 					<?php gform_tooltip( 'signature_border_color' ) ?>
 				</label>
 				<?php GFFormDetail::color_picker( 'field_signature_border_color', 'SetSignatureBorderColor' ) ?>
 			</li>
 			<li class="border_width_setting field_setting gform_setting_left_half">
-				<label for="field_signature_border_width">
+				<label for="field_signature_border_width" class="section_label">
 					<?php esc_html_e( 'Border Width', 'gravityformssignature' ); ?>
 					<?php gform_tooltip( 'signature_border_width' ) ?>
 				</label>
@@ -184,7 +184,7 @@ class GFSignature extends GFAddOn {
 				</select>
 			</li>
 			<li class="border_style_setting field_setting gform_setting_right_half">
-				<label for="field_signature_border_style">
+				<label for="field_signature_border_style" class="section_label">
 					<?php esc_html_e( 'Border Style', 'gravityformssignature' ); ?>
 					<?php gform_tooltip( 'signature_border_style' ) ?>
 				</label>
@@ -201,14 +201,14 @@ class GFSignature extends GFAddOn {
 			</li>
 
 			<li class="pen_color_setting field_setting gform_setting_left_half">
-				<label for="field_signature_pen_color">
+				<label for="field_signature_pen_color" class="section_label">
 					<?php esc_html_e( 'Pen Color', 'gravityformssignature' ); ?>
 					<?php gform_tooltip( 'signature_pen_color' ) ?>
 				</label>
 				<?php GFFormDetail::color_picker( 'field_signature_pen_color', 'SetSignaturePenColor' ) ?>
 			</li>
 			<li class="pen_size_setting field_setting gform_setting_right_half">
-				<label for="field_signature_pen_size">
+				<label for="field_signature_pen_size" class="section_label">
 					<?php esc_html_e( 'Pen Size', 'gravityformssignature' ); ?>
 					<?php gform_tooltip( 'signature_pen_size' ) ?>
 				</label>
@@ -219,7 +219,7 @@ class GFSignature extends GFAddOn {
 				</select>
 			</li>
 			<li class="box_width_setting field_setting">
-				<label for="field_signature_box_width">
+				<label for="field_signature_box_width" class="section_label">
 					<?php esc_html_e( 'Field Width', 'gravityformssignature' ); ?>
 					<?php gform_tooltip( 'signature_box_width' ) ?>
 				</label>
