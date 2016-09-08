@@ -435,8 +435,7 @@ class GF_Field_Signature extends GF_Field {
 	 */
 	public function get_supersignature_init_options( $field_id, $form ) {
 		$init_options = array(
-			'forceMouseEvent'=> true,
-			'IeModalFix'     => true,
+			'Enabled'        => true,
 			'SignObject'     => $field_id,
 			'BackColor'      => empty( $this->backgroundColor ) ? '#FFFFFF' : $this->backgroundColor,
 			'PenSize'        => rgblank( $this->penSize ) ? '2' : $this->penSize,
