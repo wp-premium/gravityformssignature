@@ -434,25 +434,54 @@ class GF_Field_Signature extends GF_Field {
 	 * @return array
 	 */
 	public function get_supersignature_init_options( $field_id, $form ) {
-		$init_options = array(
-			'Enabled'        => true,
-			'SignObject'     => $field_id,
-			'BackColor'      => empty( $this->backgroundColor ) ? '#FFFFFF' : $this->backgroundColor,
-			'PenSize'        => rgblank( $this->penSize ) ? '2' : $this->penSize,
-			'PenColor'       => empty( $this->penColor ) ? '#000000' : $this->penColor,
-			'SignWidth'      => rgblank( $this->boxWidth ) ? '300' : $this->boxWidth,
-			'SignHeight'     => '180',
-			'BorderStyle'    => empty( $this->borderStyle ) ? 'Dashed' : $this->borderStyle,
-			'BorderWidth'    => rgblank( $this->borderWidth ) ? '2px' : $this->borderWidth . 'px',
-			'BorderColor'    => empty( $this->borderColor ) ? '#DDDDDD' : $this->borderColor,
-			'RequiredPoints' => '15',
-			'ClearImage'     => gf_signature()->get_base_url() . '/includes/super_signature/refresh.png',
-			'PenCursor'      => gf_signature()->get_base_url() . '/includes/super_signature/pen.cur',
-			'Visible'        => true,
-			'ErrorMessage'   => '',
-			'StartMessage'   => '',
-			'SuccessMessage' => '',
-		);
+		// Set init options based on device.
+		$user_agent = $_SERVER['HTTP_USER_AGENT'];
+
+		if ( strpos( $user_agent, 'Mac') !== FALSE ){
+			// Settings for mac.
+			$init_options = array(
+				'Enabled'        => true,
+				'SignObject'     => $field_id,
+				'BackColor'      => empty( $this->backgroundColor ) ? '#FFFFFF' : $this->backgroundColor,
+				'PenSize'        => rgblank( $this->penSize ) ? '2' : $this->penSize,
+				'PenColor'       => empty( $this->penColor ) ? '#000000' : $this->penColor,
+				'SignWidth'      => rgblank( $this->boxWidth ) ? '300' : $this->boxWidth,
+				'SignHeight'     => '180',
+				'BorderStyle'    => empty( $this->borderStyle ) ? 'Dashed' : $this->borderStyle,
+				'BorderWidth'    => rgblank( $this->borderWidth ) ? '2px' : $this->borderWidth . 'px',
+				'BorderColor'    => empty( $this->borderColor ) ? '#DDDDDD' : $this->borderColor,
+				'RequiredPoints' => '15',
+				'ClearImage'     => gf_signature()->get_base_url() . '/includes/super_signature/refresh.png',
+				'PenCursor'      => gf_signature()->get_base_url() . '/includes/super_signature/pen.cur',
+				'Visible'        => true,
+				'ErrorMessage'   => '',
+				'StartMessage'   => '',
+				'SuccessMessage' => '',
+			);
+		}
+		else {
+			// Settings for pc and anything else.
+			$init_options = array(
+				'SignObject'     	=> $field_id,
+				'BackColor'      	=> empty( $this->backgroundColor ) ? '#FFFFFF' : $this->backgroundColor,
+				'PenSize'        	=> rgblank( $this->penSize ) ? '2' : $this->penSize,
+				'PenColor'       	=> empty( $this->penColor ) ? '#000000' : $this->penColor,
+				'SignWidth'      	=> rgblank( $this->boxWidth ) ? '300' : $this->boxWidth,
+				'SignHeight'     	=> '180',
+				'BorderStyle'    	=> empty( $this->borderStyle ) ? 'Dashed' : $this->borderStyle,
+				'BorderWidth'    	=> rgblank( $this->borderWidth ) ? '2px' : $this->borderWidth . 'px',
+				'BorderColor'    	=> empty( $this->borderColor ) ? '#DDDDDD' : $this->borderColor,
+				'RequiredPoints' 	=> '15',
+				'ClearImage'     	=> gf_signature()->get_base_url() . '/includes/super_signature/refresh.png',
+				'PenCursor'      	=> gf_signature()->get_base_url() . '/includes/super_signature/pen.cur',
+				'Visible'        	=> true,
+				'ErrorMessage'   	=> '',
+				'StartMessage'   	=> '',
+				'SuccessMessage' 	=> '',
+				'forceMouseEvent' 	=> true,
+				'IeModalFix'		=> true
+			);
+		}
 
 		/**
 		 * Allow the SuperSignature initialization options to be customized.

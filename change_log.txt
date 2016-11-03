@@ -1,4 +1,8 @@
 -------------------------------------------------------------------------------------------------------------------
+Version 3.3
+	- Updated initialization options for signature to set different values based on MAC or PC to fix issues with touch not working
+
+-------------------------------------------------------------------------------------------------------------------
 Version 3.2
     - Updated field appearance settings label classes for consistency with GF2.0+.
     - Fixed issue where signing with more than three lines corrupted the signature.
