@@ -52,6 +52,8 @@ class GFSignature extends GFAddOn {
 		parent::init();
 
 		add_filter( 'gform_merge_tag_filter', array( $this, 'merge_tag_filter' ), 10, 5 );
+		add_action( 'gform_delete_lead', array( $this, 'delete_entry' ) );
+		add_action( 'gform_delete_entries', array( $this, 'delete_entries' ), 10, 2 );
 	}
 
 	/**
@@ -62,8 +64,6 @@ class GFSignature extends GFAddOn {
 
 		add_filter( 'gform_tooltips', array( $this, 'tooltips' ) );
 		add_action( 'gform_field_appearance_settings', array( $this, 'field_settings' ), 10, 2 );
-		add_action( 'gform_delete_lead', array( $this, 'delete_lead' ) );
-		add_action( 'gform_delete_entries', array( $this, 'delete_entries' ) );
 		add_filter( 'gform_admin_pre_render', array( $this, 'edit_lead_script' ) );
 	}
 
@@ -99,10 +99,7 @@ class GFSignature extends GFAddOn {
 	public function scripts() {
 		$scripts = array(
 			array(
-				'handle'  => 'maskedinput',
-				'src'     => GFCommon::get_base_url() . '/js/jquery.maskedinput.min.js',
-				'version' => GFCommon::$version,
-				'deps'    => array( 'jquery' ),
+				'handle'  => 'gform_masked_input',
 				'enqueue' => array(
 					array( 'admin_page' => array( 'form_editor' ) ),
 				)
@@ -391,11 +388,12 @@ class GFSignature extends GFAddOn {
 	}
 
 	/**
-	 * Used by the gform_delete_lead hook to delete any signatures for the entry currently being deleted.
+	 * Used by the gform_delete_entry hook to delete any signatures for the entry currently being deleted.
 	 *
 	 * @param integer $lead_id The ID of the current entry.
 	 */
-	public function delete_lead( $lead_id ) {
+	public function delete_entry( $lead_id ) {
+
 		$lead = RGFormsModel::get_lead( $lead_id );
 		$form = RGFormsModel::get_form_meta( $lead['form_id'] );
 
@@ -416,29 +414,46 @@ class GFSignature extends GFAddOn {
 	 * 
 	 * @param int $form_id The ID of the form for which the entries are being deleted.
 	 */
-	public function delete_entries( $form_id ) {
+	public function delete_entries( $form_id, $status ) {
 
-		$form             = RGFormsModel::get_form_meta( $form_id );
+		$form             = RGFormsModel::get_form_meta( $form_id, $status );
 		$signature_fields = GFAPI::get_fields_by_type( $form, 'signature' );
 
 		if ( ! empty( $signature_fields ) ) {
 			global $wpdb;
-
-			$lead_details_table_name = GFFormsModel::get_lead_details_table_name();
 
 			foreach ( $signature_fields as $field ) {
 
 				$input_id_min = (float) $field->id - 0.0001;
 				$input_id_max = (float) $field->id + 0.0001;
 
-				$filenames = $wpdb->get_col( $wpdb->prepare( "SELECT value FROM {$lead_details_table_name} WHERE form_id=%d AND field_number BETWEEN %s AND %s", $form_id, $input_id_min, $input_id_max ) );
-				
+
+				$status_filter = '';
+				if ( ! empty( $status ) ) {
+					$status_filter = $wpdb->prepare( ' AND status=%s', $status );
+				}
+
+				if ( version_compare( self::get_gravityforms_db_version(), '2.3-dev-1', '<' ) ) {
+					$lead_details_table_name = GFFormsModel::get_lead_details_table_name();
+					$lead_table_name = GFFormsModel::get_lead_table_name();
+
+					$filenames = $wpdb->get_col( $wpdb->prepare( "SELECT ld.value FROM {$lead_details_table_name} ld 
+																	  	INNER JOIN {$lead_table_name} l ON l.id = ld.lead_id
+																		WHERE ld.form_id=%d AND ld.field_number BETWEEN %s AND %s {$status_filter}", $form_id, $input_id_min, $input_id_max ) );
+
+				} else {
+					$entry_meta_table_name = GFFormsModel::get_entry_meta_table_name();
+
+					$filenames = $wpdb->get_col( $wpdb->prepare( "SELECT meta_value FROM {$entry_meta_table_name} em
+																		INNER JOIN {$wpdb->prefix}gf_entry e ON e.id = em.entry_id
+																		WHERE em.form_id=%d AND em.meta_key=%s {$status_filter}", $form_id, $field->id ) );
+				}
+
 				if ( is_array( $filenames ) ) {
 					foreach ( $filenames as $filename ) {
 						$this->delete_signature_file( $filename );
 					}
 				}
-
 			}
 		}
 	}
@@ -463,19 +478,18 @@ class GFSignature extends GFAddOn {
 	/**
 	 * Initiates deletion of the signature file and updates the entry to remove the filename.
 	 *
-	 * @param integer $lead_id The ID of the current entry.
+	 * @param integer|array $lead_id The ID of the current entry, or the full Entry object.
 	 * @param integer $field_id The ID of the current field.
 	 *
 	 * @return bool
 	 */
 	public function delete_signature( $lead_id, $field_id ) {
-		global $wpdb;
 
-		$lead = RGFormsModel::get_lead( $lead_id );
+		$lead = is_array( $lead_id ) ? $lead_id : RGFormsModel::get_lead( $lead_id );
 
 		$this->delete_signature_file( rgar( $lead, $field_id ) );
 
-		return GFAPI::update_entry_field( $lead_id, $field_id, '' );
+		return GFAPI::update_entry_field( $lead['id'], $field_id, '' );
 	}
 
 	/**
@@ -492,5 +506,34 @@ class GFSignature extends GFAddOn {
 			unlink( $file_path );
 		}
 
+	}
+
+	/**
+	 * Checks HTTP_USER_AGENT for Internet Explorer
+	 *
+	 * @since unknown
+	 *
+	 * @return int
+	 */
+	public function is_ie() {
+		return preg_match( '/MSIE|Internet Explorer|Trident|Edge/i', getenv( 'HTTP_USER_AGENT' ) );
+	}
+
+	/**
+	 * Returns the current database version of Gravtiy Forms.
+	 *
+	 * @since 3.4
+	 *
+	 * @return string
+	 */
+	public static function get_gravityforms_db_version() {
+
+		if ( method_exists( 'GFFormsModel', 'get_database_version' ) ) {
+			$db_version = GFFormsModel::get_database_version();
+		} else {
+			$db_version = GFForms::$version;
+		}
+
+		return $db_version;
 	}
 }
