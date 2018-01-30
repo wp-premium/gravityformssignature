@@ -276,6 +276,9 @@ class GF_Field_Signature extends GF_Field {
 	 * @return string
 	 */
 	public function get_value_submission( $field_values, $get_from_post_global_var = true ) {
+		if ( empty( $_POST[ 'is_submit_' . $this->formId ] ) ) {
+			return '';
+		}
 
 		return $this->maybe_save_signature();
 	}
@@ -479,7 +482,7 @@ class GF_Field_Signature extends GF_Field {
 				'StartMessage'   	=> '',
 				'SuccessMessage' 	=> '',
 				'forceMouseEvent' 	=> true,
-				'IeModalFix'		=> true
+				'IeModalFix'		=> GFSignature::get_instance()->is_ie(),
 			);
 		}
 
@@ -494,6 +497,8 @@ class GF_Field_Signature extends GF_Field {
 		 */
 		return apply_filters( 'gform_signature_init_options', $init_options, $this, $form );
 	}
+
+
 
 }
 

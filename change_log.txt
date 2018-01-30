@@ -1,3 +1,10 @@
+Version 3.4
+	- Added compatibility with Gravity Forms 2.3.
+	- Updated IeModalFix init option to only be set for IE browsers; fixes issue with FireFox with 3+ paths on a signature.
+	- Fixed a JavaScript error which could occur in the form editor with Gravity Forms 2.3-beta.
+	- Fixed an issue where the field could be populated with the value from another form on the same page if both fields have the same ID.
+	- Fixed an issue where the signature file could remain after the entry was permanently deleted.
+
 -------------------------------------------------------------------------------------------------------------------
 Version 3.3
 	- Updated initialization options for signature to set different values based on MAC or PC to fix issues with touch not working
