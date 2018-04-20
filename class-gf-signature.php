@@ -1,5 +1,10 @@
 <?php
 
+// don't load directly
+if ( ! defined( 'ABSPATH' ) ) {
+	die();
+}
+
 GFForms::include_addon_framework();
 
 class GFSignature extends GFAddOn {
@@ -54,6 +59,8 @@ class GFSignature extends GFAddOn {
 		add_filter( 'gform_merge_tag_filter', array( $this, 'merge_tag_filter' ), 10, 5 );
 		add_action( 'gform_delete_lead', array( $this, 'delete_entry' ) );
 		add_action( 'gform_delete_entries', array( $this, 'delete_entries' ), 10, 2 );
+		add_action( 'gravityforms_cron', array( $this, 'add_index_file' ) );
+
 	}
 
 	/**
@@ -328,18 +335,40 @@ class GFSignature extends GFAddOn {
 
 		$imagename = rgget( 'signature' ) . '.png';
 
-		$folder = RGFormsModel::get_upload_root() . 'signatures/';
+		$folder = self::get_signatures_folder();
 
-		if ( ! is_file( $folder . $imagename ) ) {
+		$file_path = $folder . $imagename;
+		$is_valid_dir = trailingslashit( dirname( $file_path ) ) == $folder;
+
+		if ( ! is_file( $file_path ) || mime_content_type( $file_path ) !== 'image/png' || ! $is_valid_dir ) {
 			exit();
 		}
 
-		$signature_image = imagecreatefrompng( $folder . $imagename );
-		$return_image    = imagecreatetruecolor( imagesx( $signature_image ), imagesy( $signature_image ) );
-		
-		imagealphablending( $return_image, false );
-		imagesavealpha( $return_image, true );
-		imagecopyresampled( $return_image, $signature_image, 0, 0, 0, 0, imagesx( $signature_image ), imagesy( $signature_image ), imagesx( $signature_image ), imagesy( $signature_image ) );
+		//Preventing errors from being displayed
+		$prev_level = error_reporting( 0 );
+
+		$signature_image = imagecreatefrompng( $file_path );
+		if ( ! $signature_image ) {
+			exit();
+		}
+
+		//Restoring error reporting level
+		error_reporting( $prev_level );
+
+		// If transparency is not enabled, flatten signature.
+		if ( '1' == rgget( 't' ) ) {
+
+			$return_image = $signature_image;
+
+		} else {
+
+			$return_image = imagecreatetruecolor( imagesx( $signature_image ), imagesy( $signature_image ) );
+
+			imagealphablending( $return_image, false );
+			imagesavealpha( $return_image, true );
+			imagecopyresampled( $return_image, $signature_image, 0, 0, 0, 0, imagesx( $signature_image ), imagesy( $signature_image ), imagesx( $signature_image ), imagesy( $signature_image ) );
+
+		}
 
 		if ( ob_get_length() > 0 ) {
 			ob_clean();
@@ -372,7 +401,7 @@ class GFSignature extends GFAddOn {
 			return '';
 		}
 
-		$folder = RGFormsModel::get_upload_root() . '/signatures/';
+		$folder = $this->get_signatures_folder();
 
 		//abort if folder can't be created.
 		if ( ! wp_mkdir_p( $folder ) ) {
@@ -383,6 +412,9 @@ class GFSignature extends GFAddOn {
 		$path     = $folder . $filename;
 		imagepng( $image, $path, 4 );
 		imagedestroy( $image );
+
+		//Add index.html to prevent directory browsing
+		$this->add_index_file();
 
 		return $filename;
 	}
@@ -499,10 +531,13 @@ class GFSignature extends GFAddOn {
 	 */
 	public function delete_signature_file( $filename ) {
 
-		$folder    = RGFormsModel::get_upload_root() . '/signatures/';
+		$folder    = $this->get_signatures_folder();
 		$file_path = $folder . $filename;
 
-		if ( file_exists( $file_path ) ) {
+		//Prevent files from being deleted from folders other than the signature upload folder
+		$is_valid_dir = trailingslashit( dirname( $file_path ) ) == $folder;
+
+		if ( file_exists( $file_path ) && $is_valid_dir ) {
 			unlink( $file_path );
 		}
 
@@ -536,4 +571,39 @@ class GFSignature extends GFAddOn {
 
 		return $db_version;
 	}
+
+	/**
+	 * Add index file to signatures folder.
+	 *
+	 * @since  3.4.2
+	 * @access public
+	 *
+	 * @uses   GFCommon::recursive_add_index_file()
+	 * @uses   GFSignature::get_signatures_folder()
+	 */
+	public function add_index_file() {
+
+		// Get folder path.
+		$folder = $this->get_signatures_folder();
+
+		GFCommon::recursive_add_index_file( $folder );
+
+	}
+
+	/**
+	 * Get path to signatures folder.
+	 *
+	 * @since  3.4.2
+	 * @access public
+	 *
+	 * @uses   GFFormsModel::get_upload_root()
+	 *
+	 * @return string
+	 */
+	public static function get_signatures_folder() {
+
+		return GFFormsModel::get_upload_root() . 'signatures/';
+
+	}
+
 }
