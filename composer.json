@@ -1,0 +1,9 @@
+{
+    "name": "wp-premium/gravityformssignature",
+    "type": "wordpress-plugin",
+    "autoload": {
+        "classmap": [
+            "."
+        ]
+    }
+}
