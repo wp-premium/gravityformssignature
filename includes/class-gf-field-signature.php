@@ -193,7 +193,7 @@ class GF_Field_Signature extends GF_Field {
 
 			$container_style = rgar( $form, 'labelPlacement' ) == 'top_label' ? '' : "style='display:-moz-inline-stack; display: inline-block; zoom: 1; *display: inline;'";
 
-			$input .= "<div {$container_style}><div id='{$field_id}_Container' style='height:{$boxheight}px; width:{$boxwidth}px; {$display}' >" .
+			$input .= "<div {$container_style}><div id='{$field_id}_Container' class='gfield_signature_container ginput_container' style='height:{$boxheight}px; width:{$boxwidth}px; {$display}' >" .
 			          "<input type='hidden' class='gform_hidden' name='{$field_id}_valid' id='{$field_id}_valid' />";
 
 			$use_canvas = true;

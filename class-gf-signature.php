@@ -121,6 +121,21 @@ class GFSignature extends GFAddOn {
 					array( 'field_types' => array( 'signature' ) ),
 				),
 			),
+			array(
+				'handle'    => 'super_signature_base64',
+				'src'       => $this->get_base_url() . '/includes/super_signature/base64.js',
+				'version'   => $this->get_version(),
+			),
+			array(
+				'handle'    => 'gform_signature_frontend',
+				'src'       => $this->get_base_url() . '/js/frontend.js',
+				'version'   => $this->get_version(),
+				'deps'      => array( 'jquery', 'super_signature_script', 'super_signature_base64' ),
+				'in_footer' => true,
+				'enqueue'   => array(
+					array( 'field_types' => array( 'signature' ) ),
+				),
+			),
 		);
 
 		return array_merge( parent::scripts(), $scripts );
@@ -340,7 +355,10 @@ class GFSignature extends GFAddOn {
 		$file_path = $folder . $imagename;
 		$is_valid_dir = trailingslashit( dirname( $file_path ) ) == $folder;
 
-		if ( ! is_file( $file_path ) || mime_content_type( $file_path ) !== 'image/png' || ! $is_valid_dir ) {
+		//If mime_content_type function is defined, use it to validate that the file is a PNG, otherwise assumes it is valid
+		$is_png = function_exists( 'mime_content_type' ) && mime_content_type( $file_path ) !== 'image/png' ? false : true;
+
+		if ( ! is_file( $file_path ) || ! $is_png || ! $is_valid_dir ) {
 			exit();
 		}
 
