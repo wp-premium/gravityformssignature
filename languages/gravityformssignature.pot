@@ -1,13 +1,13 @@
-# Copyright 2009-2018 Rocketgenius, Inc.
+# Copyright 2009-2019 Rocketgenius, Inc.
 msgid ""
 msgstr ""
-"Project-Id-Version: Gravity Forms Signature Add-On 3.5.1\n"
-"Report-Msgid-Bugs-To: http://www.gravtiyhelp.com\n"
-"POT-Creation-Date: 2018-04-10 18:57:08+00:00\n"
+"Project-Id-Version: Gravity Forms Signature Add-On 3.6\n"
+"Report-Msgid-Bugs-To: https://www.gravtiyforms.com\n"
+"POT-Creation-Date: 2019-01-03 18:29:14+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2018-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2019-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Rocketgenius <customerservice@rocketgenius.com>\n"
 "Language-Team: Rocketgenius <customerservice@rocketgenius.com>\n"
 "X-Generator: Gravity Forms Build Server\n"
@@ -24,130 +24,130 @@ msgstr ""
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Textdomain-Support: yes\n"
 
-#: class-gf-signature.php:141 class-gf-signature.php:166
+#: class-gf-signature.php:156 class-gf-signature.php:181
 msgid "Background Color"
 msgstr ""
 
-#: class-gf-signature.php:141
+#: class-gf-signature.php:156
 msgid "Select the color to be used for the background of the signature area."
 msgstr ""
 
-#: class-gf-signature.php:142 class-gf-signature.php:173
+#: class-gf-signature.php:157 class-gf-signature.php:188
 msgid "Border Color"
 msgstr ""
 
-#: class-gf-signature.php:142
+#: class-gf-signature.php:157
 msgid "Select the color to be used for the border around the signature area."
 msgstr ""
 
-#: class-gf-signature.php:143 class-gf-signature.php:209
+#: class-gf-signature.php:158 class-gf-signature.php:224
 msgid "Pen Color"
 msgstr ""
 
-#: class-gf-signature.php:143
+#: class-gf-signature.php:158
 msgid "Select the color of the pen to be used for the signature."
 msgstr ""
 
-#: class-gf-signature.php:144
+#: class-gf-signature.php:159
 msgid "Width"
 msgstr ""
 
-#: class-gf-signature.php:144
+#: class-gf-signature.php:159
 msgid "Enter the width for the signature area in pixels."
 msgstr ""
 
-#: class-gf-signature.php:145 class-gf-signature.php:192
+#: class-gf-signature.php:160 class-gf-signature.php:207
 msgid "Border Style"
 msgstr ""
 
-#: class-gf-signature.php:145
+#: class-gf-signature.php:160
 msgid "Select the border style to be used around the signature area."
 msgstr ""
 
-#: class-gf-signature.php:146 class-gf-signature.php:216
+#: class-gf-signature.php:161 class-gf-signature.php:231
 msgid "Pen Size"
 msgstr ""
 
-#: class-gf-signature.php:146
+#: class-gf-signature.php:161
 msgid "Select the width of the pen to be used for the signature."
 msgstr ""
 
-#: class-gf-signature.php:147 class-gf-signature.php:180
+#: class-gf-signature.php:162 class-gf-signature.php:195
 msgid "Border Width"
 msgstr ""
 
-#: class-gf-signature.php:147
+#: class-gf-signature.php:162
 msgid "Select the border width to be used around the signature area."
 msgstr ""
 
-#: class-gf-signature.php:148
+#: class-gf-signature.php:163
 msgid "Message"
 msgstr ""
 
-#: class-gf-signature.php:148
+#: class-gf-signature.php:163
 msgid ""
 "Write the message you would like to be sent. You can insert fields "
 "submitted by the user by selecting them from the 'Insert Variable' drop "
 "down."
 msgstr ""
 
-#: class-gf-signature.php:184
+#: class-gf-signature.php:199
 msgid "None"
 msgstr ""
 
-#: class-gf-signature.php:185 class-gf-signature.php:220
+#: class-gf-signature.php:200 class-gf-signature.php:235
 msgid "Small"
 msgstr ""
 
-#: class-gf-signature.php:186 class-gf-signature.php:221
+#: class-gf-signature.php:201 class-gf-signature.php:236
 msgid "Medium"
 msgstr ""
 
-#: class-gf-signature.php:187 class-gf-signature.php:222
+#: class-gf-signature.php:202 class-gf-signature.php:237
 msgid "Large"
 msgstr ""
 
-#: class-gf-signature.php:196
+#: class-gf-signature.php:211
 msgid "Dotted"
 msgstr ""
 
-#: class-gf-signature.php:197
+#: class-gf-signature.php:212
 msgid "Dashed"
 msgstr ""
 
-#: class-gf-signature.php:198
+#: class-gf-signature.php:213
 msgid "Groove"
 msgstr ""
 
-#: class-gf-signature.php:199
+#: class-gf-signature.php:214
 msgid "Ridge"
 msgstr ""
 
-#: class-gf-signature.php:200
+#: class-gf-signature.php:215
 msgid "Inset"
 msgstr ""
 
-#: class-gf-signature.php:201
+#: class-gf-signature.php:216
 msgid "Outset"
 msgstr ""
 
-#: class-gf-signature.php:202
+#: class-gf-signature.php:217
 msgid "Double"
 msgstr ""
 
-#: class-gf-signature.php:203
+#: class-gf-signature.php:218
 msgid "Solid"
 msgstr ""
 
-#: class-gf-signature.php:227
+#: class-gf-signature.php:242
 msgid "Field Width"
 msgstr ""
 
-#: class-gf-signature.php:256
+#: class-gf-signature.php:271
 msgid "Would you like to delete this file? 'Cancel' to stop. 'OK' to delete"
 msgstr ""
 
-#: class-gf-signature.php:504
+#: class-gf-signature.php:522
 msgid "There was an issue deleting this signature."
 msgstr ""
 
