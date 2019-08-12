@@ -135,6 +135,9 @@ class GFSignature extends GFAddOn {
 				'enqueue'   => array(
 					array( 'field_types' => array( 'signature' ) ),
 				),
+				'strings' => array(
+					'lockedReset' => wp_strip_all_tags( __( 'Reset to re-sign.', 'gravityformssignature' ) )
+				)
 			),
 		);
 
@@ -355,14 +358,20 @@ class GFSignature extends GFAddOn {
 		$file_path = $folder . $imagename;
 		$is_valid_dir = trailingslashit( dirname( $file_path ) ) == $folder;
 
-		//If mime_content_type function is defined, use it to validate that the file is a PNG, otherwise assumes it is valid
-		$is_png = function_exists( 'mime_content_type' ) && mime_content_type( $file_path ) !== 'image/png' ? false : true;
+		// Check if signature file is a local file.
+		if ( stream_is_local( $file_path ) ) {
+			// If mime_content_type function is defined, use it to validate that the file is a PNG, otherwise assumes it is valid
+			$is_png = function_exists( 'mime_content_type' ) && mime_content_type( $file_path ) !== 'image/png' ? false : true;
+			if ( ! $is_png ) {
+				exit();
+			}
+		}
 
-		if ( ! is_file( $file_path ) || ! $is_png || ! $is_valid_dir ) {
+		if ( ! is_file( $file_path ) || ! $is_valid_dir ) {
 			exit();
 		}
 
-		//Preventing errors from being displayed
+		// Preventing errors from being displayed
 		$prev_level = error_reporting( 0 );
 
 		$signature_image = imagecreatefrompng( $file_path );
@@ -370,7 +379,7 @@ class GFSignature extends GFAddOn {
 			exit();
 		}
 
-		//Restoring error reporting level
+		// Restoring error reporting level
 		error_reporting( $prev_level );
 
 		// If transparency is not enabled, flatten signature.
@@ -414,6 +423,11 @@ class GFSignature extends GFAddOn {
 
 		$signature_data = rgpost( $input_name );
 
+		// Remove undefined parameters.
+		$signature_data = base64_decode( $signature_data );
+		$signature_data = str_replace( 'undefined', '', $signature_data );
+		$signature_data = base64_encode( $signature_data );
+
 		$image = GetSignatureImage( $signature_data );
 		if ( ! $image ) {
 			return '';
@@ -453,7 +467,20 @@ class GFSignature extends GFAddOn {
 
 		foreach ( $form['fields'] as $field ) {
 			if ( $field->type == 'signature' ) {
-				$this->delete_signature( $lead, $field->id );
+				/**
+				 * Enables the ability to disable deletion of the signature file or trigger deletion at a later time.
+				 *
+				 * @since 3.7.1
+				 *
+				 * @param bool    $delete_file Defaults to true.
+				 * @param array   $form        The Form object.
+				 * @param integer $lead_id     The ID of the current entry.
+				 * @param integer $field_id    The ID of the current field.
+				 */
+				$delete_signature = apply_filters( 'gform_signature_delete_file_pre_delete_entry', true, $form, $lead_id, $field->id );
+				if ( $delete_signature ) {
+					$this->delete_signature( $lead, $field->id );
+				}
 			}
 		}
 
