@@ -1,7 +1,19 @@
+### 4.0 | 2020-09-23
+- Added security enhancements.
+- Added the [gform_signature_url](https://docs.gravityforms.com/gform_signature_url/), [gform_signature_url_permission_granted](https://docs.gravityforms.com/gform_signature_url_permission_granted/), and [gform_signature_url_require_login](https://docs.gravityforms.com/gform_signature_url_require_login/) filters.
+- Added support for Gravity Forms 2.5
+
+### 3.9 | 2020-05-18
+- Added translations for Hebrew, Hindi, Japanese, and Turkish.
+- Added the label visibility and description placement settings to the field appearance tab.
+- Updated Javascript files to use minified versions.
+- Fixed signing issue with Windows touch devices.
+
+
 ### 3.8 | 2019-07-31
 - Added a check to GFSignature::display_signature() to only use mime_content_type() if the signature image file is local.
 - Added security enhancements.
-- Added the gform_signature_delete_file_pre_delete_entry filter to disable deletion of the signature file or trigger deletion at a later time.
+- Added the *[gform_signature_delete_file_pre_delete_entry](https://docs.gravityforms.com/gform_signature_delete_file_pre_delete_entry/)* filter to disable deletion of the signature file or trigger deletion at a later time.
 
 
 ### 3.7 | 2019-03-19
