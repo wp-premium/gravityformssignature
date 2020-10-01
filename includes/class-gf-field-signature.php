@@ -20,6 +20,30 @@ class GF_Field_Signature extends GF_Field {
 	}
 
 	/**
+	 * Returns the field's form editor icon.
+	 *
+	 * This could be an icon url or a dashicons class.
+	 *
+	 * @since 3.9.1
+	 *
+	 * @return string
+	 */
+	public function get_form_editor_field_icon() {
+		return gf_signature()->get_base_url() . '/images/menu-icon.svg';
+	}
+
+	/**
+	 * Returns the field's form editor description.
+	 *
+	 * @since 3.9.1
+	 *
+	 * @return string
+	 */
+	public function get_form_editor_field_description() {
+		return esc_attr__( 'Allows users to sign online using a mouse or stylus.', 'gravityformssignature' );
+	}
+
+	/**
 	 * Assign the Signature button to the Advanced Fields group.
 	 *
 	 * @return array
@@ -48,6 +72,7 @@ class GF_Field_Signature extends GF_Field {
 			'conditional_logic_field_setting',
 			'error_message_setting',
 			'label_setting',
+			'label_placement_setting',
 			'admin_label_setting',
 			'rules_setting',
 			'visibility_setting',
@@ -150,12 +175,18 @@ class GF_Field_Signature extends GF_Field {
 		$borderwidth = rgar( $init_options, 'BorderWidth', '2px' );
 
 		if ( $is_form_editor ) {
-			//box width is hardcoded in the admin
-			$input = '<style>' .
-			         '.top_label .gf_signature_container {width: 460px;} ' .
-			         '.left_label .gf_signature_container, .right_label .gf_signature_container {width: 300px;} ' .
-			         '</style>' .
-			         "<div style='display:-moz-inline-stack; display: inline-block; zoom: 1; *display: inline;'><div class='gf_signature_container' style='height:180px; border: {$borderwidth} {$borderstyle} {$bordercolor}; background-color:{$bgcolor};'></div></div>";
+
+			if ( gf_signature()->is_gravityforms_supported( '2.5-beta' ) ) {
+				$input = "<div style='zoom: 1;'><div class='gf_signature_container' style='height:180px; border: {$borderwidth} {$borderstyle} {$bordercolor}; background-color:{$bgcolor};'></div></div>";
+			} else {
+				//box width is hardcoded in the admin
+				$input = '<style>' .
+				         '.top_label .gf_signature_container {width: 460px;} ' .
+				         '.left_label .gf_signature_container, .right_label .gf_signature_container {width: 300px;} ' .
+				         '</style>' .
+				         "<div style='display:-moz-inline-stack; display: inline-block; zoom: 1; *display: inline;'><div class='gf_signature_container' style='height:180px; border: {$borderwidth} {$borderstyle} {$bordercolor}; background-color:{$bgcolor};'></div></div>";
+			}
+
 
 		} else {
 
@@ -165,7 +196,7 @@ class GF_Field_Signature extends GF_Field {
 
 			if ( ! empty( $signature_filename ) ) {
 
-				$signature_url = gf_signature()->get_signature_url( $signature_filename );
+				$signature_url = $this->get_value_url( $signature_filename );
 
 				$input .= sprintf( "<div id='%s_signature_image'><img src='%s' width='%spx'/><div>", $field_id, $signature_url, $boxwidth );
 
@@ -320,7 +351,7 @@ class GF_Field_Signature extends GF_Field {
 	 */
 	public function get_value_merge_tag( $value, $input_id, $entry, $form, $modifier, $raw_value, $url_encode, $esc_html, $format, $nl2br ) {
 		if ( ! empty( $value ) ) {
-			$signature_url = gf_signature()->get_signature_url( $value );
+			$signature_url = $this->get_value_url( $value );
 
 			return $url_encode ? urlencode( $signature_url ) : $signature_url;
 		}
@@ -341,7 +372,7 @@ class GF_Field_Signature extends GF_Field {
 	 */
 	public function get_value_entry_list( $value, $entry, $field_id, $columns, $form ) {
 		if ( ! empty( $value ) ) {
-			$signature_url = gf_signature()->get_signature_url( $value );
+			$signature_url = $this->get_value_url( $value );
 			$thumb         = GFCommon::get_base_url() . '/images/doctypes/icon_image.gif';
 			$value         = sprintf( "<a href='%s' target='_blank' title='%s'><img src='%s'/></a>", $signature_url, esc_attr__( 'Click to view', 'gravityformssignature' ), $thumb );
 		}
@@ -362,7 +393,7 @@ class GF_Field_Signature extends GF_Field {
 	 */
 	public function get_value_entry_detail( $value, $currency = '', $use_text = false, $format = 'html', $media = 'screen' ) {
 		if ( ! empty( $value ) ) {
-			$signature_url = gf_signature()->get_signature_url( $value );
+			$signature_url = $this->get_value_url( $value );
 
 			if ( $format == 'html' ) {
 				$value = sprintf( "<a href='%s' target='_blank' title='%s'><img src='%s' width='100' /></a>", $signature_url, esc_attr__( 'Click to view', 'gravityformssignature' ), $signature_url );
@@ -392,7 +423,23 @@ class GF_Field_Signature extends GF_Field {
 
 		$value = rgar( $entry, $input_id );
 
-		return ! empty( $value ) ? gf_signature()->get_signature_url( $value ) : '';
+		return ! empty( $value ) ? $this->get_value_url( $value ) : '';
+	}
+
+	/**
+	 * Returns the signature URL.
+	 *
+	 * @since 4.0
+	 *
+	 * @param string $value The field value; the signature filename including extension.
+	 *
+	 * @return string
+	 */
+	public function get_value_url( $value ) {
+		$modifiers = $this->get_modifiers();
+		$signature = new GF_Signature_Image( gf_signature(), pathinfo( $value, PATHINFO_FILENAME ), $this->formId, $this->id, in_array( 'transparent', $modifiers ), in_array( 'download', $modifiers ) );
+
+		return $signature->get_url();
 	}
 
 

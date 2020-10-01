@@ -44,8 +44,8 @@ class GFSignature extends GFAddOn {
 		parent::pre_init();
 
 		if ( $this->is_gravityforms_supported() && class_exists( 'GF_Field' ) ) {
-			require_once( 'includes/class-gf-field-signature.php' );
-
+			require_once 'includes/class-gf-signature-image.php';
+			require_once 'includes/class-gf-field-signature.php';
 			add_action( 'parse_request', array( $this, 'display_signature' ) );
 		}
 	}
@@ -83,20 +83,20 @@ class GFSignature extends GFAddOn {
 		add_action( 'wp_ajax_gf_delete_signature', array( $this, 'ajax_delete_signature' ) );
 	}
 
-	/**
-	 * The Signature add-on does not support logging.
-	 *
-	 * @param array $plugins The plugins which support logging.
-	 *
-	 * @return array
-	 */
-	public function set_logging_supported( $plugins ) {
+	// # SCRIPTS & STYLES -----------------------------------------------------------------------------------------------
 
-		return $plugins;
+	/**
+	 * Return the plugin's icon for the plugin/form settings menu.
+	 *
+	 * @since 3.9.1
+	 *
+	 * @return string
+	 */
+	public function get_menu_icon() {
+
+		return file_get_contents( $this->get_base_path() . '/images/menu-icon.svg' );
 
 	}
-
-	// # SCRIPTS & STYLES -----------------------------------------------------------------------------------------------
 
 	/**
 	 * Return the scripts which should be enqueued.
@@ -104,6 +104,9 @@ class GFSignature extends GFAddOn {
 	 * @return array
 	 */
 	public function scripts() {
+
+		$min = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG || isset( $_GET['gform_debug'] ) ? '' : '.min';
+
 		$scripts = array(
 			array(
 				'handle'  => 'gform_masked_input',
@@ -128,7 +131,7 @@ class GFSignature extends GFAddOn {
 			),
 			array(
 				'handle'    => 'gform_signature_frontend',
-				'src'       => $this->get_base_url() . '/js/frontend.js',
+				'src'       => $this->get_base_url() . "/js/frontend{$min}.js",
 				'version'   => $this->get_version(),
 				'deps'      => array( 'jquery', 'super_signature_script', 'super_signature_base64' ),
 				'in_footer' => true,
@@ -245,7 +248,7 @@ class GFSignature extends GFAddOn {
 					<?php esc_html_e( 'Field Width', 'gravityformssignature' ); ?>
 					<?php gform_tooltip( 'signature_box_width' ) ?>
 				</label>
-				<input id="field_signature_box_width" type="text" style="width:40px"
+				<input id="field_signature_box_width" type="text" class="small"
 				       onkeyup="SetSignatureBoxWidth(jQuery(this).val());"
 				       onchange="SetSignatureBoxWidth(jQuery(this).val());"/> px
 			</li>
@@ -329,11 +332,15 @@ class GFSignature extends GFAddOn {
 	/**
 	 * Returns the URL for the specified signature.
 	 *
+	 * @deprecated 4.0
+	 *
 	 * @param string $filename The filename for this signature.
 	 *
 	 * @return string
 	 */
 	public function get_signature_url( $filename ) {
+		_deprecated_function( __METHOD__, '3.10', 'GF_Signature_Url::get_url()' );
+
 		$path_info = pathinfo( $filename );
 		$filename  = $path_info['filename'];
 
@@ -345,68 +352,114 @@ class GFSignature extends GFAddOn {
 	 *
 	 * @param WP $wp The current WordPress instance.
 	 */
-	public static function display_signature( $wp ) {
-		$is_signature = rgget( 'page' ) == 'gf_signature';
-		if ( ! $is_signature ) {
+	public function display_signature( $wp ) {
+		$data = $this->get_query_data();
+
+		if ( empty( $data ) ) {
 			return;
 		}
 
-		$imagename = rgget( 'signature' ) . '.png';
+		$signature = new GF_Signature_Image( $this, $data['filename'], $data['form_id'], $data['field_id'], $data['transparent'], $data['download'], $data['hash'] );
+		$signature->maybe_output();
+	}
 
-		$folder = self::get_signatures_folder();
+	/**
+	 * Returns the string to be used as the primary query var in the signature URL.
+	 *
+	 * @since 4.0
+	 *
+	 * @return string
+	 */
+	public function get_query_var() {
+		return 'gf-signature';
+	}
 
-		$file_path = $folder . $imagename;
-		$is_valid_dir = trailingslashit( dirname( $file_path ) ) == $folder;
-
-		// Check if signature file is a local file.
-		if ( stream_is_local( $file_path ) ) {
-			// If mime_content_type function is defined, use it to validate that the file is a PNG, otherwise assumes it is valid
-			$is_png = function_exists( 'mime_content_type' ) && mime_content_type( $file_path ) !== 'image/png' ? false : true;
-			if ( ! $is_png ) {
-				exit();
-			}
+	/**
+	 * Gets data from the query string which identifies the signature to be output.
+	 *
+	 * @since 4.0
+	 *
+	 * @return array
+	 */
+	public function get_query_data() {
+		if ( empty( $_GET ) ) {
+			return array();
 		}
 
-		if ( ! is_file( $file_path ) || ! $is_valid_dir ) {
-			exit();
+		$filename    = $this->get_legacy_filename();
+		$transparent = rgget( 't' ) === '1';
+
+		if ( ! empty( $filename ) ) {
+			return array(
+				'filename'    => $filename,
+				'transparent' => $transparent,
+				'hash'        => '',
+				'form_id'     => 0,
+				'field_id'    => 0,
+				'download'    => false,
+			);
 		}
 
-		// Preventing errors from being displayed
-		$prev_level = error_reporting( 0 );
+		$data = array(
+			'filename'    => rgget( $this->get_query_var() ),
+			'transparent' => $transparent,
+			'hash'        => rgget( 'hash' ),
+			'form_id'     => absint( rgget( 'form-id' ) ),
+			'field_id'    => absint( rgget( 'field-id' ) ),
+			'download'    => rgget( 'dl' ) === '1',
+		);
 
-		$signature_image = imagecreatefrompng( $file_path );
-		if ( ! $signature_image ) {
-			exit();
+		return $this->has_required_query_data( $data ) ? $data : array();
+	}
+
+	/**
+	 * Determines if the required query arguments have values.
+	 *
+	 * @since 4.0
+	 *
+	 * @param array $data The data retrieved from the query string.
+	 *
+	 * @return bool
+	 */
+	private function has_required_query_data( $data ) {
+		if ( empty( $data['filename'] ) ) {
+			return false;
 		}
 
-		// Restoring error reporting level
-		error_reporting( $prev_level );
+		if ( empty( $data['hash'] ) ) {
+			$this->log_debug( __METHOD__ . "(): Aborting ({$data['filename']}); empty hash." );
 
-		// If transparency is not enabled, flatten signature.
-		if ( '1' == rgget( 't' ) ) {
-
-			$return_image = $signature_image;
-
-		} else {
-
-			$return_image = imagecreatetruecolor( imagesx( $signature_image ), imagesy( $signature_image ) );
-
-			imagealphablending( $return_image, false );
-			imagesavealpha( $return_image, true );
-			imagecopyresampled( $return_image, $signature_image, 0, 0, 0, 0, imagesx( $signature_image ), imagesy( $signature_image ), imagesx( $signature_image ), imagesy( $signature_image ) );
-
+			return false;
 		}
 
-		if ( ob_get_length() > 0 ) {
-			ob_clean();
+		if ( empty( $data['form_id'] ) ) {
+			$this->log_debug( __METHOD__ . "(): Aborting ({$data['filename']}); invalid form-id." );
+
+			return false;
 		}
 
-		header( 'Content-type: image/png' );
-		imagepng( $return_image );
-		imagedestroy( $return_image );
-		imagedestroy( $signature_image );
+		if ( empty( $data['field_id'] ) ) {
+			$this->log_debug( __METHOD__ . "(): Aborting ({$data['filename']}); invalid field-id." );
 
-		exit();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Returns the filename from the legacy query string.
+	 *
+	 * @since 4.0
+	 *
+	 * @return string|null
+	 */
+	public function get_legacy_filename() {
+		if ( rgget( 'page' ) !== 'gf_signature' ) {
+			return '';
+		}
+
+		return rgget( 'signature' );
 	}
 
 
